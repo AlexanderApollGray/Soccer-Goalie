@@ -51,11 +51,9 @@ function keyupHandler(event) {
 requestAnimationFrame(start);
 
 function start() {
-    if (mouseIsPressed) {
-        ctx.drawImage(document.getElementById('goalie-default'), goalieX, goalieY, 200, 200);
-    }
     if (upIsPressed) {
-        goalieX += 5;
+        goalieY -= 5;
     }
+    ctx.drawImage(document.getElementById('goalie-default'), goalieX, goalieY, 200, 200);
     requestAnimationFrame(start);
 }
