@@ -49,7 +49,6 @@ function keyupHandler(event) {
 
 // Main Program
 requestAnimationFrame(start);
-
 function start() {
     if (upIsPressed) {
         goalieY -= 5;
