@@ -14,8 +14,14 @@ ctx.fillText("Play", 320, 310);
 let mouseIsPressed = false;
 let upIsPressed = false;
 let spaceIsPressed = false;
-let goalieX = 400;
-let goalieY = 300;
+let goalie = {
+    x: 400,
+    y: 390,
+    w: 300,
+    h: 300,
+    gravity: 0,
+    standing: true,
+};
 
 // Event Listeners
 document.addEventListener("mousedown", mousedownHandler);
@@ -50,11 +56,23 @@ function keyupHandler(event) {
 // Main Program
 requestAnimationFrame(start);
 function start() {
-    if (upIsPressed) {
-        goalieY -= 5;
-    }
     ctx.fillStyle = "aqua";
     ctx.fillRect(0, 0, cnv.width, cnv.height);
-    ctx.drawImage(document.getElementById('goalie-default'), goalieX, goalieY, 200, 200);
+    ctx.drawImage(document.getElementById('goalie-default'), goalie.x, goalie.y, goalie.w, goalie.h);
+
+    // Gravity
+    goalie.y += goalie.gravity;
+    if (goalie.gravity < 20) {
+        goalie.gravity += 0.65;
+    }
+    if (upIsPressed && goalie.standing) {
+        goalie.standing = false;
+        goalie.y -= 20
+        goalie.gravity = -20;
+    }
+    if (goalie.y >= 390) {
+        goalie.gravity = 0;
+        goalie.standing = true;
+    }
     requestAnimationFrame(start);
 }
