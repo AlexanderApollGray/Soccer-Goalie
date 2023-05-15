@@ -6,14 +6,15 @@ let ctx = cnv.getContext("2d");
 cnv.width = 800;
 cnv.height = 650;
 
-ctx.font = "70px Arial, Helvetica, sans-serif";
-ctx.fillStyle = "#8B008B";
-ctx.fillText("Play", 320, 310);
+// ctx.font = "70px Arial, Helvetica, sans-serif";
+// ctx.fillStyle = "#8B008B";
+// ctx.fillText("Play", 320, 310);
 
 // Global Variables
 let mouseIsPressed = false;
 let upIsPressed = false;
 let spaceIsPressed = false;
+let background = document.getElementById("background");
 let goalie = {
     x: 400,
     y: 390,
@@ -56,8 +57,8 @@ function keyupHandler(event) {
 // Main Program
 requestAnimationFrame(start);
 function start() {
-    ctx.fillStyle = "aqua";
-    ctx.fillRect(0, 0, cnv.width, cnv.height);
+    // Draw background and character
+    ctx.drawImgae(background, 0, 0, cnv.width, cnv.height);
     ctx.drawImage(document.getElementById('goalie-default'), goalie.x, goalie.y, goalie.w, goalie.h);
 
     // Gravity
