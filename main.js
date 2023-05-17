@@ -11,25 +11,73 @@ cnv.height = 800;
 // ctx.fillText("Play", 320, 310);
 
 // Global Variables
-let mouseIsPressed = false;
-let upIsPressed = false;
-let spaceIsPressed = false;
 let background = document.getElementById("background");
-let ballImg = document.getElementById("soccer-ball");
-let goalieImg = document.getElementById('goalie');
+let input = {};
+
 let goalie = {
     x: 900,
-    y: 500,
-    w: 200,
-    h: 200,
-    gravity: 0,
+    y: 445,
+    imageNum: 2,
+    sw: 35,
+    sh: 81,
+    w: 100,
+    h: 100 * 81 / 35,
+    vy: 0,
+    img: document.getElementById('goalie'),
+    gravity: 1,
     standing: true,
+
+    draw() {
+        this.jump();
+        this.kick();
+        ctx.drawImage(this.img, this.imageNum * this.sw, 0, this.sw, this.sh, this.x, this.y, this.w, this.h);
+    },
+
+    jump() {
+        this.y += this.vy;
+        if (!this.standing) {
+            this.vy += this.gravity;
+        }
+        if ((input.up || input.w) && this.standing) {
+            this.standing = false;
+            this.vy = -25;
+        }
+        if (this.y > 445) {
+            this.standing = true;
+            this.y = 445;
+            this.vy = 0;
+        }
+    },
+
+    kick() {
+        if (input.c) this.imageNum = 1;
+    }
 };
+
 let ball = {
     x: 100,
     y: 575,
     w: 150,
     h: 150,
+    img: document.getElementById("soccer-ball"),
+    speed: 5,
+    vx: 0,
+    vy: 0,
+    draw() {
+        this.move();
+        ctx.drawImage(this.img, this.x, this.y, this.w, this.h);
+    },
+    move() {
+        if (input.mouse) {
+            let random = randomInt(1, 1);
+            if (random === 1) {
+                ball.vy = -0.5;
+                ball.vx = 1;
+            }
+        }
+        this.x += this.vx * this.speed;
+        this.y += this.vy * this.speed;
+    },
 }
 
 // Event Listeners
@@ -39,67 +87,36 @@ document.addEventListener('keydown', keydownHandler);
 document.addEventListener('keyup', keyupHandler);
 
 function mousedownHandler() {
-    mouseIsPressed = true;
+    input.mouse = true;
 }
 
 function mouseupHandler() {
-    mouseIsPressed = false;
+    input.mouse = false;
 }
 
 function keydownHandler(event) {
-    if (event.code === "ArrowUp") {
-        upIsPressed = true;
-    } if (event.code === "Space") {
-        spaceIsPressed = true;
+    let key = event.key;
+    if (event.key.includes('Arrow')) {
+        key = key.slice(5).toLowerCase();
     }
+    input[key] = true;
 }
 
 function keyupHandler(event) {
-    if (event.code === "ArrowUp") {
-        upIsPressed = false;
-    } if (event.code === "Space") {
-        spaceIsPressed = false;
+    let key = event.key;
+    if (key.includes('Arrow')) {
+        key = key.slice(5).toLowerCase();
     }
+    input[key] = false;
 }
 
 // Main Program
-requestAnimationFrame(start);
-function start() {
-    // if (mouseIsPressed = true) {
-    //     ballMove();
-    // }
+loop();
+function loop() {
     // Draw background, goalie, and ball
     ctx.drawImage(background, 0, 0, cnv.width, cnv.height);
-    ctx.drawImage(goalieImg, goalie.x, goalie.y, goalie.w, goalie.h);
-    ctx.drawImage(ballImg, ball.x, ball.y, ball.w, ball.h);
+    goalie.draw();
+    ball.draw();
 
-    // Gravity
-    goalie.y += goalie.gravity;
-    if (goalie.gravity < 21) {
-        goalie.gravity += 0.65;
-    }
-    if (upIsPressed && goalie.standing) {
-        goalie.standing = false;
-        goalie.y -= 20
-        goalie.gravity = -20;
-    }
-    if (goalie.y >= 500) {
-        goalie.gravity = 0;
-        goalie.standing = true;
-    }
-
-    // // Ball movement
-    // function ballMove() {
-    //     for (let n = 0; n < 1;) {
-    //         random = randomInt(1, 5);
-    //     }
-    //     if (random = 1 && ball.y < 500) {
-    //         ball.y++;
-    //         ball.x++;
-    //     } else {
-    //         ball.x = 0;
-    //         ball.y = 0;
-    //     }
-    // }
-    requestAnimationFrame(start);
+    requestAnimationFrame(loop);
 }
