@@ -6,13 +6,32 @@ let ctx = cnv.getContext("2d");
 cnv.width = 1200;
 cnv.height = 800;
 
-// ctx.font = "70px Arial, Helvetica, sans-serif";
-// ctx.fillStyle = "#8B008B";
-// ctx.fillText("Play", 320, 310);
-
 // Global Variables
 let background = document.getElementById("background");
 let input = {};
+
+let play = {
+    timerDiv: document.getElementById('timer'),
+    seconds: 0,
+    savesDiv: document.getElementById('saves'),
+    saves: 0,
+    goalsDiv: document.getElementById('goals'),
+    goals: 0,
+
+    goals() {
+        this.goalsDiv.innerHTML = "Goals: " + this.goals;
+    },
+
+    time() {
+        if (seconds >= 0) {
+            this.timerDiv.innerHTML = "Timer: " + this.seconds;
+            seconds++;
+        }
+        if (points === 50) {
+            clearInterval(timer);
+        }
+    },
+};
 
 let goalie = {
     x: 900,
@@ -30,6 +49,7 @@ let goalie = {
     draw() {
         this.jump();
         this.kick();
+        this.catch();
         ctx.drawImage(this.img, this.imageNum * this.sw, 0, this.sw, this.sh, this.x, this.y, this.w, this.h);
     },
 
@@ -50,8 +70,16 @@ let goalie = {
     },
 
     kick() {
-        if (input.c) this.imageNum = 1;
-    }
+        if (input.v) {
+            for (let t = 0; t < 5; t++) {
+                this.imageNum = 1;
+            }
+        }
+    },
+
+    catch() {
+        if (input.c) this.imageNum = 0;
+    },
 };
 
 let ball = {
@@ -69,11 +97,24 @@ let ball = {
     },
     move() {
         if (input.mouse) {
-            let random = randomInt(1, 1);
+            let random = randomInt(1, 4);
             if (random === 1) {
                 ball.vy = -0.5;
-                ball.vx = 1;
+                ball.vx = 1.2;
+            } else if (random === 2) {
+                ball.vy = -0.25;
+                ball.vx = 1.2;
+            } else if (random === 3) {
+                ball.vy = 0;
+                ball.vx = 1.2;
             }
+            console.log(random);
+
+        }
+        if (ball.x > 1100) {
+            ball.vy = 0;
+            ball.vx = 0;
+            play.goals++;
         }
         this.x += this.vx * this.speed;
         this.y += this.vy * this.speed;
