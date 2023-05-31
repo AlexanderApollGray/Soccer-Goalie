@@ -139,15 +139,6 @@ function checkCollision(obj1, obj2) {
     );
 }
 
-function isInNet(ball, net) {
-    return (
-        ball.x + ball.w > net.x &&
-        ball.x < net.x + net.width &&
-        ball.y + ball.h > net.y &&
-        ball.y < net.y + net.height
-    );
-}
-
 // Event Listeners
 document.addEventListener("mousedown", mousedownHandler);
 document.addEventListener("mouseup", mouseupHandler);
