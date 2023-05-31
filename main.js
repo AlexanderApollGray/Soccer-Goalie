@@ -18,9 +18,9 @@ let play = {
     goalsDiv: document.getElementById('goals'),
     goals: 0,
 
-    goals() {
-        this.goalsDiv.innerHTML = "Goals: " + this.goals;
-    },
+    // goals() {
+    //     this.goalsDiv.innerHTML = "Goals: " + this.goals;
+    // },
 
     time() {
         if (seconds >= 0) {
@@ -84,11 +84,11 @@ let goalie = {
 
 let ball = {
     x: 100,
-    y: 575,
-    w: 150,
-    h: 150,
+    y: 615,
+    w: 50,
+    h: 50,
     img: document.getElementById("soccer-ball"),
-    speed: 5,
+    speed: 10,
     vx: 0,
     vy: 0,
     draw() {
@@ -112,13 +112,40 @@ let ball = {
 
         }
         if (ball.x > 1100) {
-            ball.vy = 0;
-            ball.vx = 0;
             play.goals++;
+            ball.x = 100;
+            ball.y = 625;
+            ball.vx = 0;
+            ball.vy = 0;
         }
         this.x += this.vx * this.speed;
         this.y += this.vy * this.speed;
     },
+}
+
+let net = {
+    x: 1000,
+    y: 400,
+    width: 200,
+    height: 200
+};
+
+function checkCollision(obj1, obj2) {
+    return (
+        obj1.x < obj2.x + obj2.w &&
+        obj1.x + obj1.w > obj2.x &&
+        obj1.y < obj2.y + obj2.h &&
+        obj1.y + obj1.h > obj2.y
+    );
+}
+
+function isInNet(ball, net) {
+    return (
+        ball.x + ball.w > net.x &&
+        ball.x < net.x + net.width &&
+        ball.y + ball.h > net.y &&
+        ball.y < net.y + net.height
+    );
 }
 
 // Event Listeners
@@ -154,10 +181,22 @@ function keyupHandler(event) {
 // Main Program
 loop();
 function loop() {
-    // Draw background, goalie, and ball
     ctx.drawImage(background, 0, 0, cnv.width, cnv.height);
+
     goalie.draw();
     ball.draw();
+
+    // Check for collision between the ball and the goalie
+    if (checkCollision(ball, goalie)) {
+        // Update Saves
+        play.saves++;
+
+        // Reset the ball's position and velocities
+        ball.x = 100;
+        ball.y = 625;
+        ball.vx = 0;
+        ball.vy = 0;
+    }
 
     requestAnimationFrame(loop);
 }
