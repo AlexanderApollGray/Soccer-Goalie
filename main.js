@@ -18,10 +18,6 @@ let play = {
     goalsDiv: document.getElementById('goals'),
     goals: 0,
 
-    // goals() {
-    //     this.goalsDiv.innerHTML = "Goals: " + this.goals;
-    // },
-
     time() {
         if (seconds >= 0) {
             this.timerDiv.innerHTML = "Timer: " + this.seconds;
@@ -82,46 +78,51 @@ let goalie = {
     },
 };
 
-let ball = {
-    x: 100,
-    y: 615,
-    w: 50,
-    h: 50,
-    img: document.getElementById("soccer-ball"),
-    speed: 10,
-    vx: 0,
-    vy: 0,
-    draw() {
-        this.move();
-        ctx.drawImage(this.img, this.x, this.y, this.w, this.h);
-    },
-    move() {
-        if (input.mouse) {
-            let random = randomInt(1, 4);
-            if (random === 1) {
-                ball.vy = -0.5;
-                ball.vx = 1.2;
-            } else if (random === 2) {
-                ball.vy = -0.25;
-                ball.vx = 1.2;
-            } else if (random === 3) {
-                ball.vy = 0;
-                ball.vx = 1.2;
-            }
-            console.log(random);
+function createBall() {
+    let ball = {
+        x: 100,
+        y: 615,
+        w: 50,
+        h: 50,
+        img: document.getElementById("soccer-ball"),
+        speed: 10,
+        vx: 0,
+        vy: 0,
+        draw() {
+            this.move();
+            ctx.drawImage(this.img, this.x, this.y, this.w, this.h);
+        },
+        move() {
+            if (input.mouse) {
+                let random = randomInt(1, 4);
+                if (random === 1) {
+                    ball.vy = -0.5;
+                    ball.vx = 1.2;
+                } else if (random === 2) {
+                    ball.vy = -0.25;
+                    ball.vx = 1.2;
+                } else if (random === 3) {
+                    ball.vy = 0;
+                    ball.vx = 1.2;
+                }
+                console.log(random);
 
-        }
-        if (ball.x > 1100) {
-            play.goals++;
-            ball.x = 100;
-            ball.y = 625;
-            ball.vx = 0;
-            ball.vy = 0;
-        }
-        this.x += this.vx * this.speed;
-        this.y += this.vy * this.speed;
-    },
+            }
+            if (ball.x > 1100) {
+                play.goals++;
+                ball.x = 100;
+                ball.y = 625;
+                ball.vx = 0;
+                ball.vy = 0;
+            }
+            this.x += this.vx * this.speed;
+            this.y += this.vy * this.speed;
+        },
+    };
+    balls.push(ball);
 }
+
+let balls = [];
 
 let net = {
     x: 1000,
@@ -129,6 +130,15 @@ let net = {
     width: 200,
     height: 200
 };
+
+function isInNet(ball, net) {
+    return (
+        ball.x + ball.w > net.x &&
+        ball.x < net.x + net.width &&
+        ball.y + ball.h > net.y &&
+        ball.y < net.y + net.height
+    );
+}
 
 function checkCollision(obj1, obj2) {
     return (
@@ -169,24 +179,39 @@ function keyupHandler(event) {
     input[key] = false;
 }
 
+let ballCreationDelay = 1000; // Delay between ball creations (in milliseconds)
+let lastBallCreationTime = 0; // Time of the last ball creation
+
+
 // Main Program
 loop();
 function loop() {
     ctx.drawImage(background, 0, 0, cnv.width, cnv.height);
 
     goalie.draw();
-    ball.draw();
 
-    // Check for collision between the ball and the goalie
-    if (checkCollision(ball, goalie)) {
-        // Update Saves
-        play.saves++;
+    // Loop through the balls and update/draw each ball
+    for (let i = 0; i < balls.length; i++) {
+        let ball = balls[i];
 
-        // Reset the ball's position and velocities
-        ball.x = 100;
-        ball.y = 625;
-        ball.vx = 0;
-        ball.vy = 0;
+        ball.draw();
+
+        if (isInNet(ball, net)) {
+            // Handle the ball being in the net
+            play.goals++;
+
+            // Remove the ball from the list
+            balls.splice(i, 1);
+
+            i--; // Decrement i to account for the removed ball
+        }
+    }
+
+    // Create a new ball if enough time has passed since the last creation
+    let currentTime = Date.now();
+    if (currentTime - lastBallCreationTime >= ballCreationDelay) {
+        createBall();
+        lastBallCreationTime = currentTime;
     }
 
     requestAnimationFrame(loop);
