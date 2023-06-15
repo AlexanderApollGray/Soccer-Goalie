@@ -41,11 +41,26 @@ let goalie = {
     img: document.getElementById('goalie'),
     gravity: 1,
     standing: true,
+    kicking: false,
+    catching: false,
+    cooldown: 0,
 
     draw() {
         this.jump();
         this.kick();
         this.catch();
+        
+        if (this.cooldown > 0) {
+            this.cooldown++;
+            if (this.cooldown % 40 === 0) {
+                this.cooldown = 0;
+            } else if (this.cooldown % 20 === 0) {
+                this.imageNum = 2;
+                this.kicking = 0;
+                this.catching = false;
+            }
+        }
+
         ctx.drawImage(this.img, this.imageNum * this.sw, 0, this.sw, this.sh, this.x, this.y, this.w, this.h);
     },
 
@@ -66,7 +81,9 @@ let goalie = {
     },
 
     kick() {
-        if (input.v) {
+        if (input.v && this.cooldown === 0) {
+            this.kicking = true;
+            this.cooldown++;
             for (let t = 0; t < 5; t++) {
                 this.imageNum = 1;
             }
@@ -74,24 +91,40 @@ let goalie = {
     },
 
     catch() {
-        if (input.c) this.imageNum = 0;
+        if (input.c && this.cooldown === 0) {
+            this.catching = true;
+            this.cooldown++;
+            this.imageNum = 0;
+        }
     },
 
-    getHitbox() {
+    getHandHitbox() {
+        return {
+            x: this.x + 20,
+            y: this.y + 50,
+            w: this.w - 60,
+            h: this.h - 160
+        }
+    },
+
+    getFootHitbox() {
         return {
             x: this.x + 30,
-            y: this.y + 5,
-            w: this.w - 30,
-            h: this.h - 15
+            y: this.y + 160,
+            w: this.w - 60,
+            h: this.h - 170
         }
-    }
+    },
 };
 
 function createBall() {
-    let rand = Math.random() * -0.45
+    let y = Math.random() * 620;
+    let min = (net.y + net.h - 50 - y) / Math.sqrt((net.y + net.h - 50 - y) ** 2 + cnv.width ** 2);
+    let max = (net.y - y) / Math.sqrt((net.y - y) ** 2 + cnv.width ** 2);
+    let rand = Math.random() * (max - min) + min;
     let ball = {
-        x: 100,
-        y: 615,
+        x: -50,
+        y: y,
         w: 50,
         h: 50,
         img: document.getElementById("soccer-ball"),
@@ -104,13 +137,6 @@ function createBall() {
             ctx.drawImage(this.img, this.x, this.y, this.w, this.h);
         },
         move() {
-            if (this.x > 1100) {
-                play.goals++;
-                this.x = 100;
-                this.y = 625;
-                this.vx = 0;
-                this.vy = 0;
-            }
             this.x += this.vx * this.speed;
             this.y += this.vy * this.speed;
         },
@@ -121,18 +147,15 @@ function createBall() {
 let balls = [];
 
 let net = {
-    x: 1055,
-    y: 150,
-    width: 140,
-    height: 515
+    y: 200,
+    h: 465
 };
 
 function isInNet(ball, net) {
     return (
-        ball.x + ball.w > net.x &&
-        ball.x < net.x + net.width &&
+        ball.x > cnv.width &&
         ball.y + ball.h > net.y &&
-        ball.y < net.y + net.height
+        ball.y < net.y + net.h
     );
 }
 
@@ -189,9 +212,17 @@ function loop() {
     // Loop through the balls and update/draw each ball
     for (let i = 0; i < balls.length; i++) {
         let ball = balls[i];
-
-        if (checkCollision(ball, goalie.getHitbox())) {
-
+        if (goalie.catching && checkCollision(ball, goalie.getHandHitbox())) {
+            ball.vx *= -1;
+            goalie.catching = false;
+        } else if (goalie.kicking && checkCollision(ball, goalie.getFootHitbox())) {
+            ball.vx *= -1;
+            goalie.kicking = false;
+        } else if (ball.y + ball.h > 665) {
+            ball.vy *= -1;
+        } else if (ball.x + ball.w < 0) {
+            balls.splice(i, 1);
+            i--;
         } else if (isInNet(ball, net)) {
             // Handle the ball being in the net
             play.goals++;
@@ -204,8 +235,6 @@ function loop() {
 
         ball.draw();
     }
-
-    ctx.strokeRect(net.x, net.y, net.width, net.height)
 
     // Create a new ball if enough time has passed since the last creation
     let currentTime = Date.now();
