@@ -76,9 +76,19 @@ let goalie = {
     catch() {
         if (input.c) this.imageNum = 0;
     },
+
+    getHitbox() {
+        return {
+            x: this.x + 30,
+            y: this.y + 5,
+            w: this.w - 30,
+            h: this.h - 15
+        }
+    }
 };
 
 function createBall() {
+    let rand = Math.random() * -0.45
     let ball = {
         x: 100,
         y: 615,
@@ -86,34 +96,20 @@ function createBall() {
         h: 50,
         img: document.getElementById("soccer-ball"),
         speed: 10,
-        vx: 0,
-        vy: 0,
+        vy: rand,
+        vx: Math.sqrt(1 - rand ** 2),
+
         draw() {
             this.move();
             ctx.drawImage(this.img, this.x, this.y, this.w, this.h);
         },
         move() {
-            if (input.mouse) {
-                let random = randomInt(1, 4);
-                if (random === 1) {
-                    ball.vy = -0.5;
-                    ball.vx = 1.2;
-                } else if (random === 2) {
-                    ball.vy = -0.25;
-                    ball.vx = 1.2;
-                } else if (random === 3) {
-                    ball.vy = 0;
-                    ball.vx = 1.2;
-                }
-                console.log(random);
-
-            }
-            if (ball.x > 1100) {
+            if (this.x > 1100) {
                 play.goals++;
-                ball.x = 100;
-                ball.y = 625;
-                ball.vx = 0;
-                ball.vy = 0;
+                this.x = 100;
+                this.y = 625;
+                this.vx = 0;
+                this.vy = 0;
             }
             this.x += this.vx * this.speed;
             this.y += this.vy * this.speed;
@@ -125,10 +121,10 @@ function createBall() {
 let balls = [];
 
 let net = {
-    x: 1000,
-    y: 400,
-    width: 200,
-    height: 200
+    x: 1055,
+    y: 150,
+    width: 140,
+    height: 515
 };
 
 function isInNet(ball, net) {
@@ -194,9 +190,9 @@ function loop() {
     for (let i = 0; i < balls.length; i++) {
         let ball = balls[i];
 
-        ball.draw();
+        if (checkCollision(ball, goalie.getHitbox())) {
 
-        if (isInNet(ball, net)) {
+        } else if (isInNet(ball, net)) {
             // Handle the ball being in the net
             play.goals++;
 
@@ -205,7 +201,11 @@ function loop() {
 
             i--; // Decrement i to account for the removed ball
         }
+
+        ball.draw();
     }
+
+    ctx.strokeRect(net.x, net.y, net.width, net.height)
 
     // Create a new ball if enough time has passed since the last creation
     let currentTime = Date.now();
