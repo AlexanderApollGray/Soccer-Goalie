@@ -11,22 +11,8 @@ let background = document.getElementById("background");
 let input = {};
 
 let play = {
-    timerDiv: document.getElementById('timer'),
-    seconds: 0,
-    savesDiv: document.getElementById('saves'),
     saves: 0,
-    goalsDiv: document.getElementById('goals'),
     goals: 0,
-
-    time() {
-        if (seconds >= 0) {
-            this.timerDiv.innerHTML = "Timer: " + this.seconds;
-            seconds++;
-        }
-        if (points === 50) {
-            clearInterval(timer);
-        }
-    },
 };
 
 let goalie = {
@@ -42,14 +28,14 @@ let goalie = {
     gravity: 1,
     standing: true,
     kicking: false,
-    catching: false,
+    swatting: false,
     cooldown: 0,
 
     draw() {
         this.jump();
         this.kick();
-        this.catch();
-        
+        this.swat();
+
         if (this.cooldown > 0) {
             this.cooldown++;
             if (this.cooldown % 40 === 0) {
@@ -57,7 +43,7 @@ let goalie = {
             } else if (this.cooldown % 20 === 0) {
                 this.imageNum = 2;
                 this.kicking = 0;
-                this.catching = false;
+                this.swatting = false;
             }
         }
 
@@ -90,9 +76,9 @@ let goalie = {
         }
     },
 
-    catch() {
+    swat() {
         if (input.c && this.cooldown === 0) {
-            this.catching = true;
+            this.swatting = true;
             this.cooldown++;
             this.imageNum = 0;
         }
@@ -212,11 +198,13 @@ function loop() {
     // Loop through the balls and update/draw each ball
     for (let i = 0; i < balls.length; i++) {
         let ball = balls[i];
-        if (goalie.catching && checkCollision(ball, goalie.getHandHitbox())) {
+        if (goalie.swatting && checkCollision(ball, goalie.getHandHitbox())) {
             ball.vx *= -1;
-            goalie.catching = false;
+            play.saves++;
+            goalie.swatting = false;
         } else if (goalie.kicking && checkCollision(ball, goalie.getFootHitbox())) {
             ball.vx *= -1;
+            play.saves++;
             goalie.kicking = false;
         } else if (ball.y + ball.h > 665) {
             ball.vy *= -1;
@@ -235,6 +223,9 @@ function loop() {
 
         ball.draw();
     }
+    // Display Saves and Goals
+    document.getElementById('saves').innerHTML = `Saves: ${play.saves}`
+    document.getElementById('goals').innerHTML = `Goals: ${play.goals}`
 
     // Create a new ball if enough time has passed since the last creation
     let currentTime = Date.now();
@@ -242,6 +233,5 @@ function loop() {
         createBall();
         lastBallCreationTime = currentTime;
     }
-
     requestAnimationFrame(loop);
 }
